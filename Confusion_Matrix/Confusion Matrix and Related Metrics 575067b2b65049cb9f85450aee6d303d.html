@@ -1,0 +1,685 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Confusion Matrix and Related Metrics</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+    margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-interactiveBlue { background-color: rgba(35, 131, 226, .07); }
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-translucentGray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+.select-value-color-pageGlass { background-color: undefined; }
+.select-value-color-washGlass { background-color: undefined; }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="575067b2-b650-49cb-9f85-450aee6d303d" class="page sans"><header><div class="page-header-icon undefined"><span class="icon">🤔</span></div><h1 class="page-title">Confusion Matrix and Related Metrics</h1><p class="page-description"></p></header><div class="page-body"><h1 id="89bc7f9b-c56e-415e-9d3a-9fbc6a7af47a" class="">Confusion Matrix Using Example of Cardiac Arrhythmia</h1><hr id="d694ec9b-96a4-4172-ab77-d1beea606935"/><p id="f7617e89-f2e1-4868-b036-8c1a86eeaa66" class=""><strong>Actual: It is what is known as labeled data</strong></p><p id="b66c4310-e23f-4bda-9c33-e6cea205b4b0" class=""><strong>Predicted: It is what is expected using the Algorithm. </strong></p><table id="dd937582-4b37-44a1-9e94-78eaff9d9b04" class="simple-table"><thead class="simple-table-header"><tr id="c9a65bfa-48a3-45bb-9783-e621aef197f1"><th id="slQU" class="simple-table-header-color simple-table-header"></th><th id="N&lt;`O" class="simple-table-header-color simple-table-header" style="width:210.984375px">Actual</th><th id="VxgX" class="simple-table-header-color simple-table-header">Actual</th></tr></thead><tbody><tr id="054b3989-c095-45d5-bf8d-468e0eb861bf"><th id="slQU" class="simple-table-header-color simple-table-header">Predicted</th><td id="N&lt;`O" class="" style="width:210.984375px"><strong>Have Cardiac Arrhythymia</strong></td><td id="VxgX" class=""><strong>Does not have Cardiac Arrhythymia</strong></td></tr><tr id="8b80abb2-0f38-46ea-a17a-a697dee50718"><th id="slQU" class="simple-table-header-color simple-table-header">Have Cardiac Arrhythymia</th><td id="N&lt;`O" class="" style="width:210.984375px"><mark class="highlight-teal">True Positive</mark></td><td id="VxgX" class=""><mark class="highlight-red">False Positive</mark></td></tr><tr id="0e67796a-9adc-4dae-919d-c90cbfa13af1"><th id="slQU" class="simple-table-header-color simple-table-header">Does not have Cardiac Arrhythymia</th><td id="N&lt;`O" class="" style="width:210.984375px"><mark class="highlight-red">False Negative</mark></td><td id="VxgX" class=""><mark class="highlight-teal">True Negative</mark></td></tr></tbody></table><ul id="a8672de9-6087-4799-a404-49dd9e54f3a6" class="toggle"><li><details open=""><summary><strong>True Positive (TP):  Predicted that the patient would have “Cardiac Arrhythmia”; it has one.</strong></summary></details></li></ul><ul id="9f47a114-8501-45bc-a8b0-222ca0bb4cf9" class="toggle"><li><details open=""><summary><strong>True Negative (TN): Predicted that the patient won’t have “Cardiac Arrhythmia”; it does not have one.</strong></summary></details></li></ul><ul id="f07338c7-97a1-46c3-8419-b5321119c40e" class="toggle"><li><details open=""><summary><strong>False Positive (FP): Predicted that the patient would have “Cardiac Arrhythmia”; but it does not have one.</strong></summary></details></li></ul><ul id="475ad787-a3fd-43e5-833b-bbe5ac2fa388" class="toggle"><li><details open=""><summary><strong>False Negative (FN): Predicted that the patient won’t have “Cardiac Arrhythmia”; but it does have one.</strong></summary></details></li></ul><h1 id="e7a9d8dc-b04d-4797-873e-e081b5edd396" class="">Metrics Derived from the Confusion Matrix.</h1><hr id="d7545775-8464-4ac2-8ed2-17f387c7ad6a"/><h2 id="bd770a54-b536-4839-9d7b-7bb6daebb460" class="">Sensitivity (True Positive Rate or Recall)</h2><figure id="552018d0-069b-4a4b-9a4f-e073da388898" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.2/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Sensitivity</mtext><mo>=</mo><mfrac><mtext>True Positive</mtext><mrow><mtext>True Positive</mtext><mo>+</mo><mtext>False Negative</mtext></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{Sensitivity} = \frac{\text{True Positive}}{\text{True Positive} + \text{False Negative}}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord text"><span class="mord">Sensitivity</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.2407700000000004em;vertical-align:-0.8804400000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.36033em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">True Positive</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">False Negative</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">True Positive</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804400000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><table id="18402ea5-b1d6-4603-af91-e1b8b89f7fc1" class="simple-table"><thead class="simple-table-header"><tr id="9efd9f90-b372-4f92-b844-982fabe37c52"><th id="NYq|" class="simple-table-header-color simple-table-header"></th><th id="{ccG" class="simple-table-header-color simple-table-header">Actual</th></tr></thead><tbody><tr id="e4d29662-3ab3-4507-b19f-d93cf6d108e8"><th id="NYq|" class="simple-table-header-color simple-table-header">Predicted</th><td id="{ccG" class=""><strong>Has Cardiac Arrhythymia</strong></td></tr><tr id="a9c1e2f7-dec0-4ab2-81c1-88a8f83c1955"><th id="NYq|" class="simple-table-header-color simple-table-header">Have Cardiac Arrhythymia</th><td id="{ccG" class=""><mark class="highlight-teal">True Positive</mark></td></tr><tr id="410068d6-50ce-4b33-9e6f-8445b328fddb"><th id="NYq|" class="simple-table-header-color simple-table-header">Does not have Cardiac Arrhythymia</th><td id="{ccG" class=""><mark class="highlight-red">False Negative</mark></td></tr></tbody></table><p id="982932ce-8df1-480e-a184-43dc7eef20f2" class=""><em>In this case, Sensitivity tells us what percentage of patients having “Cardiac arrhythmia” are correctly predicted by the algo. </em></p><hr id="c92d634f-b5f8-477d-8c3f-76ccc3b1c9a8"/><h2 id="b0808b40-2d05-4bf4-b856-fef037a1153a" class="">Specificity (True Negative Rate)</h2><figure id="5bdcb22f-7a81-4254-9657-f68cd4faae69" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.2/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Specificity</mtext><mo>=</mo><mfrac><mtext>True Negative</mtext><mrow><mtext>True Negative</mtext><mo>+</mo><mtext>False Positive</mtext></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{Specificity} = \frac{\text{True Negative}}{\text{True Negative} + \text{False Positive}}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord text"><span class="mord">Specificity</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.24077em;vertical-align:-0.8804400000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603299999999998em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">True Negative</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">False Positive</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">True Negative</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804400000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><table id="a95d2453-7385-4233-840c-e8f686dcd619" class="simple-table"><thead class="simple-table-header"><tr id="1c38aa39-9605-4117-b65f-db7ba78c7d63"><th id="slQU" class="simple-table-header-color simple-table-header"></th><th id="VxgX" class="simple-table-header-color simple-table-header">Actual</th></tr></thead><tbody><tr id="4795fd4f-0d8c-4458-b106-5a922a436705"><th id="slQU" class="simple-table-header-color simple-table-header">Predicted</th><td id="VxgX" class=""><strong>Does not have Cardiac Arrhythymia</strong></td></tr><tr id="6ff69dbd-847f-42df-b888-0a95f62c2b80"><th id="slQU" class="simple-table-header-color simple-table-header">Have Cardiac Arrhythymia</th><td id="VxgX" class=""><mark class="highlight-red">False Positive</mark></td></tr><tr id="2035ba4b-5412-44b0-9373-f6284d210eb9"><th id="slQU" class="simple-table-header-color simple-table-header">Does not have Cardiac Arrhythymia</th><td id="VxgX" class=""><mark class="highlight-teal">True Negative</mark></td></tr></tbody></table><p id="f14bca0e-9000-4d4a-a4e1-145745b89083" class=""><em>In this case, Specificity tells us what percentage of patients not having “Cardiac arrhythmia” are correctly predicted by the algo. </em></p><hr id="4b8117cb-712b-4d23-90bd-b93b103d2b47"/><h2 id="5d4782e0-be42-41bc-80d8-feb4fe174f19" class="">Accuracy</h2><table id="8b446bd0-8580-4b3c-85dd-29de2d90bb38" class="simple-table"><thead class="simple-table-header"><tr id="09217549-7c41-4f59-ab73-daa591df4b50"><th id="slQU" class="simple-table-header-color simple-table-header"></th><th id="N&lt;`O" class="simple-table-header-color simple-table-header" style="width:210.984375px">Actual</th><th id="VxgX" class="simple-table-header-color simple-table-header">Actual</th></tr></thead><tbody><tr id="8ae9498a-de40-478d-8b9e-820848037c05"><th id="slQU" class="simple-table-header-color simple-table-header">Predicted</th><td id="N&lt;`O" class="" style="width:210.984375px"><strong>Have Cardiac Arrhythymia</strong></td><td id="VxgX" class=""><strong>Does not have Cardiac Arrhythymia</strong></td></tr><tr id="1bb1b27f-7f4a-405f-9ef6-1e4dd2f6f95a"><th id="slQU" class="simple-table-header-color simple-table-header">Have Cardiac Arrhythymia</th><td id="N&lt;`O" class="" style="width:210.984375px"><mark class="highlight-teal">True Positive</mark></td><td id="VxgX" class=""><mark class="highlight-red">False Positive</mark></td></tr><tr id="49b040e2-eb99-4ef7-ad99-bd584e9860f7"><th id="slQU" class="simple-table-header-color simple-table-header">Does not have Cardiac Arrhythymia</th><td id="N&lt;`O" class="" style="width:210.984375px"><mark class="highlight-red">False Negative</mark></td><td id="VxgX" class=""><mark class="highlight-teal">True Negative</mark></td></tr></tbody></table><figure id="61802cea-da12-4727-9be8-96ecdfecf8da" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.2/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Accuracy</mtext><mo>=</mo><mfrac><mrow><mtext>True Positive</mtext><mo>+</mo><mtext>True Negative</mtext></mrow><mrow><mtext>True Positive</mtext><mo>+</mo><mtext>True Negative</mtext><mo>+</mo><mtext>False Positive</mtext><mo>+</mo><mtext>False Negative</mtext></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{Accuracy} = \frac{\text{True Positive}+\text{True Negative}}{\text{True Positive} + \text{True Negative}+\text{False Positive}+\text{False Negative}}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="mord text"><span class="mord">Accuracy</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.24077em;vertical-align:-0.8804400000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603299999999998em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">True Positive</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">True Negative</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">False Positive</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">False Negative</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">True Positive</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">True Negative</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804400000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><ul id="3e6f5315-dc5c-4b4d-8143-3e33ffb15c46" class="bulleted-list"><li style="list-style-type:disc">The metric&#x27;s name shows us the accuracy used to judge model performance.</li></ul><ul id="79547b76-2c17-43f8-93ea-6f1b7f663806" class="bulleted-list"><li style="list-style-type:disc">However, it won’t be an ideal metric if the dataset is unbalanced, <ul id="e3104cd0-053f-469c-ba5b-35cebde6d6b7" class="bulleted-list"><li style="list-style-type:circle">For Example, Since the ECG signals show that it is of the cardiac arrhythmia patient, there are 90% of cases in which signals are false, which don’t have cardiac arrhythmia, and 10% of cases in which signs are true, which do have cardiac arrhythmia. Hence, the accuracy would be 90%. However, it won’t be a good performance metric. </li></ul></li></ul><hr id="97689d48-4054-4dce-a594-77565bf82ee1"/><h2 id="b11fdbb6-4240-4486-b45b-e6f33363ebc4" class="">Precision</h2><table id="221fd3f0-76df-4412-9af2-e5878c46d629" class="simple-table"><thead class="simple-table-header"><tr id="2bc15665-a492-4bc1-8e94-f0cc19e1b76e"><th id="slQU" class="simple-table-header-color simple-table-header"></th><th id="N&lt;`O" class="simple-table-header-color simple-table-header" style="width:210.984375px">Actual</th><th id="VxgX" class="simple-table-header-color simple-table-header">Actual</th></tr></thead><tbody><tr id="e0940a92-cd0a-40cc-ade7-4bf19a5b9557"><th id="slQU" class="simple-table-header-color simple-table-header">Predicted</th><td id="N&lt;`O" class="" style="width:210.984375px"><strong>Have Cardiac Arrhythymia</strong></td><td id="VxgX" class=""><strong>Does not have Cardiac Arrhythymia</strong></td></tr><tr id="3791a824-0892-4053-9896-0cf60ad873dd"><th id="slQU" class="simple-table-header-color simple-table-header">Have Cardiac Arrhythymia</th><td id="N&lt;`O" class="" style="width:210.984375px"><mark class="highlight-teal">True Positive</mark></td><td id="VxgX" class=""><mark class="highlight-red">False Positive</mark></td></tr></tbody></table><figure id="8c40bc0d-54b4-481c-9c3c-78fb3502f880" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.2/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Precision</mtext><mo>=</mo><mfrac><mtext>True Positive</mtext><mrow><mtext>True Positive</mtext><mo>+</mo><mtext>False Positive</mtext></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{Precision} = \frac{\text{True Positive}}{\text{True Positive}+\text{False Positive}}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord text"><span class="mord">Precision</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.1296600000000003em;vertical-align:-0.7693300000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.36033em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">True Positive</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">False Positive</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">True Positive</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693300000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><p id="085a9b22-50ad-4022-ba1e-93fb81cfe317" class="">Rate of which your positive predictions are actually positive.</p><hr id="4d0ccdff-0008-4433-9a20-8cbdddb01977"/><h2 id="d0a1a03c-d1a8-4eb4-b390-16574a42a587" class="">F1 Score</h2><p id="fb1b7577-d6a7-488a-90f8-c71ab3a14816" class=""><strong>Precision: (TP/TP+FP) The proportion of predicted arrhythmia cases that were actual arrhythmias.</strong></p><p id="9dbc6890-97a1-4f97-91ac-12184985e52e" class=""><strong>Recall/ Sensitivity: (TP/(TP+FN)) The proportion of actual arrhythmia cases correctly identified by the model.</strong><div class="indented"><ul id="bb710a02-cda1-40b7-aff3-cf898b5e0962" class="bulleted-list"><li style="list-style-type:disc">For our case, we would require a model with high sensitivity because we don’t want our model to say that it missed cardiac arrhythmia, which may cause the patient&#x27;s life.</li></ul><ul id="5d8ba5bb-6efb-4f26-96da-0591e61e8253" class="bulleted-list"><li style="list-style-type:disc">However, false alarms may be said, “Sorry for the inconvenience.” You might not face a heart attack. It was our mistake.</li></ul></div></p><ul id="bf748174-9afc-493b-9208-2ac5550a8365" class="bulleted-list"><li style="list-style-type:disc"><strong>The F1 score is the harmonic mean between precision and recall.</strong></li></ul><ul id="7866ea15-7942-45bc-bbc3-8c9862e6b6ae" class="bulleted-list"><li style="list-style-type:disc"><strong>It is a single metric that considers both false positives and false negatives.</strong></li></ul><figure id="46ae4c38-646d-4974-aa4d-09c501e88664" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.2/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>F1 Score</mtext><mo>=</mo><mn>2</mn><mo>∗</mo><mfrac><mrow><mi>P</mi><mi>r</mi><mi>e</mi><mi>c</mi><mi>i</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo>∗</mo><mi>S</mi><mi>e</mi><mi>n</mi><mi>s</mi><mi>i</mi><mi>t</mi><mi>i</mi><mi>v</mi><mi>i</mi><mi>t</mi><mi>y</mi></mrow><mrow><mi>P</mi><mi>r</mi><mi>e</mi><mi>c</mi><mi>i</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi><mo>+</mo><mi>S</mi><mi>e</mi><mi>n</mi><mi>s</mi><mi>i</mi><mi>t</mi><mi>i</mi><mi>v</mi><mi>i</mi><mi>t</mi><mi>y</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\text{F1 Score} = 2*\frac{Precision*Sensitivity}{Precision+Sensitivity}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord text"><span class="mord">F1 Score</span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:2.24077em;vertical-align:-0.8804400000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603299999999998em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal">rec</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mord mathnormal">rec</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">o</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mord mathnormal">e</span><span class="mord mathnormal">n</span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804400000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><hr id="7b95c15c-b5e3-4e5c-aba2-9f28346e99d2"/><h2 id="f004e3a1-d0a0-47e4-a1cd-f183b794b3dc" class="">ROC</h2><h3 id="de50d25a-d487-46b7-8e50-5e71c8030fbc" class=""><strong>Why do we need it?</strong></h3><p id="33f36481-0fe9-46ff-ba35-f9a021e9cca1" class="">To Explain this, let me give you an example: Suppose I use logistic regression for the above classification (0 and 1); not having cardiac arrhythmia or having cardiac arrhythmia. What are the implications of the threshold?</p><table id="2b3f31be-7034-4291-b2dc-cf721a1bc554" class="simple-table"><thead class="simple-table-header"><tr id="9a7e919c-8232-4b04-ab19-c47a64955491"><th id="slQU" class="simple-table-header-color simple-table-header"></th><th id="N&lt;`O" class="simple-table-header-color simple-table-header" style="width:210.984375px">Actual</th><th id="VxgX" class="simple-table-header-color simple-table-header">Actual</th></tr></thead><tbody><tr id="d3a634c8-be5c-4339-b9dc-571021c5e6ca"><th id="slQU" class="simple-table-header-color simple-table-header">Predicted</th><td id="N&lt;`O" class="" style="width:210.984375px"><strong>Have Cardiac Arrhythymia</strong></td><td id="VxgX" class=""><strong>Does not have Cardiac Arrhythymia</strong></td></tr><tr id="7101fb59-53e4-4b0f-98aa-9ee594a0ca54"><th id="slQU" class="simple-table-header-color simple-table-header">Have Cardiac Arrhythymia</th><td id="N&lt;`O" class="" style="width:210.984375px"><mark class="highlight-teal">True Positive</mark></td><td id="VxgX" class=""><mark class="highlight-red">False Positive</mark></td></tr><tr id="dcd78b82-8b54-4baf-aba5-17fb850c876f"><th id="slQU" class="simple-table-header-color simple-table-header">Does not have Cardiac Arrhythymia</th><td id="N&lt;`O" class="" style="width:210.984375px"><mark class="highlight-red">False Negative</mark></td><td id="VxgX" class=""><mark class="highlight-teal">True Negative</mark></td></tr></tbody></table><h3 id="5d41a426-4fb5-47bf-8179-550e88fee7c8" class="">There are low and high threshold scenarios, which we should discuss before moving further.</h3><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">Low Threshold (e.g., 0.1 or 0.2)</summary><div class="indented"><ul id="34b1e7c0-3464-4e79-aca6-23a59e1dbdb1" class="bulleted-list"><li style="list-style-type:disc">The Number of patients correctly predicted having cardiac arrhythmia (and they also have one) increases. (Hence Higher True Positive and Lower False Negative)<ul id="ba307991-fff6-42bc-8c47-97cb54fc7a69" class="bulleted-list"><li style="list-style-type:circle">But those who don’t have cardiac arrhythmia are also wrongly predicted to have one. (Higher False Positive and Lower True Negative)</li></ul></li></ul><ul id="f46492f8-f220-4786-b0f1-93014d7137e2" class="bulleted-list"><li style="list-style-type:disc"><em><strong>Higher Sensitivity since True Positives increase and False Negatives decrease.</strong></em></li></ul><ul id="cdabe634-223d-4a6b-8588-3eff8a65eef4" class="bulleted-list"><li style="list-style-type:disc"><em><strong>Lower Specificity since False Positive increases and True Negative decreases.</strong></em></li></ul><ul id="1b905def-96a2-49e0-9417-58a3441658af" class="bulleted-list"><li style="list-style-type:disc"><em><strong>More cases of actual ones are detected, but false ones are also seen, which may lead to more unnecessary medical interventions or additional tests.</strong></em></li></ul></div></details><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">High Threshold (e.g., 0.8 or 0.9)</summary><div class="indented"><ul id="0e6372f8-0e05-40e0-96a9-ba0bb0e4abc5" class="bulleted-list"><li style="list-style-type:disc">The number of patients correctly predicted not having cardiac arrhythmia (and they also don’t have one) increases. (Hence Higher True Negative and Lower False Positive).<ul id="4b64d7d7-b6e2-419c-84ec-bccff4ffc405" class="bulleted-list"><li style="list-style-type:circle">But those with cardiac arrhythmia are also wrongly predicted as not having one. (Hence, Lower True Positives and Higher False Negatives)</li></ul></li></ul><ul id="f013921e-6338-4dd4-9ce0-b94793bfb300" class="bulleted-list"><li style="list-style-type:disc"><em><strong>Lower Sensitivity since True Positives decreases and False Negatives increase. (which shows it might miss several actual cases of arrhythmias)</strong></em></li></ul><ul id="8dc2728f-f75a-4ce5-a0f2-944254c39619" class="bulleted-list"><li style="list-style-type:disc"><em><strong>Higher Specificity since False Positive decreases and True Negative increases. (Higher precision, most of the positive predictions are actual arrhythmias)</strong></em></li></ul><ul id="d0734eeb-b651-48df-9aa6-a9c6eb15939f" class="bulleted-list"><li style="list-style-type:disc"><strong><em>It could be dangerous if undetected arrhythmias have several implications.</em></strong></li></ul></div></details><p id="749be97e-2df5-46fd-8b03-c9ce8be2131b" class="">
+</p><p id="7952f6a1-8bc7-4a34-b87c-67e694ec7521" class=""><strong>So, we must create a confusion matrix for each threshold and calculate the True Positive Rate and False Positive Rate for each scenario.
+
+For each threshold, we plot the x-axis as the False Positive Rate and y-axis as the True Positive Rate. </strong>
+
+</p><figure id="f96c7b57-3c93-437e-8847-070541063ed0" class="image"><a href="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled.png"><img style="width:710px" src="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled.png"/></a></figure><hr id="15445079-f916-4fa9-9c40-6d3fa61102d1"/><h2 id="ca05172b-9212-48e6-b5a0-bd47108d095c" class="">AUC: Area under Curve</h2><ul id="39c260f5-5903-4806-91d8-fd436dae879f" class="bulleted-list"><li style="list-style-type:disc">It is simply the area under the curve of the ROC graph.</li></ul><ul id="17cde4f3-ea4d-4aaf-9733-f0a16892f5c9" class="bulleted-list"><li style="list-style-type:disc">It helps us compare two roc curves (maybe they both are from two different algorithms, hence helping us know which classification algorithm is better)</li></ul><hr id="1c819296-8681-4554-b19e-57dc88f6d793"/><h2 id="3c3cc3cb-6db0-47b4-b316-6b7dd0f3cc73" class="">📈 Example of the above-understood Metrics:</h2><p id="979958b6-9f11-4ed1-b92a-44322c748f86" class="">You can see the notebook for the implementation <a href="https://www.kaggle.com/code/ayushlodha18110031/cardiac-arrhythmia-classification">here: </a></p><h3 id="6d14cbc4-6bb6-4fbe-b3c6-979850185c89" class="">Data</h3><ul id="d6044c5b-4a7f-42ba-ad22-823d3b04f5b0" class="bulleted-list"><li style="list-style-type:disc">Cardiac Arrhythmia Dataset, reduced columns, for example case:</li></ul><ul id="702baeeb-52ff-41ae-ac0f-670612f4223e" class="bulleted-list"><li style="list-style-type:disc">Screenshot of the dataset overview, X_columns = [age,sex, height, weight] and Y_columns = [diagnosis]</li></ul><figure id="143cf58e-73c1-4257-8400-3ee4ff51f809" class="image"><a href="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%201.png"><img style="width:240px" src="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%201.png"/></a></figure><h3 id="d1245d7c-1489-4212-a7f3-7f1bcf7c0574" class="">Confusion Matrix of the Model: Logistic Regression</h3><figure id="498fdd59-91ec-4781-b0da-9ec45ab193f3" class="image"><a href="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%202.png"><img style="width:336px" src="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%202.png"/></a></figure><h3 id="e6792948-d7ca-483a-af8b-e0deefa085ca" class="">Classification Report of the Model: Logistic Regression</h3><figure id="4aab100d-b145-42e3-bf3c-b56edb126bcb" class="image"><a href="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%203.png"><img style="width:336px" src="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%203.png"/></a></figure><h3 id="739afc57-bdfb-4f39-bbed-e34304d32860" class="">ROC Curve of the Model: Logistic Regression</h3><figure id="54ca3d48-60ae-47bb-8e6e-39ad0669d23f" class="image"><a href="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%204.png"><img style="width:384px" src="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%204.png"/></a></figure><h3 id="47c187d4-2791-49f5-a612-aadefdc60b6e" class="">Comparison of the two ROC Curves of the Models (Logistic Regression and Random Forest Classifier)</h3><figure id="b80fb93e-60f1-4504-aa65-69a496e7b3a0" class="image"><a href="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%205.png"><img style="width:480px" src="Confusion%20Matrix%20and%20Related%20Metrics%20575067b2b65049cb9f85450aee6d303d/Untitled%205.png"/></a></figure><ul id="e46275c8-2329-43ec-a318-dc041c6e0c43" class="bulleted-list"><li style="list-style-type:disc">For this case, we can see that the Random Forest Area under the curve is greater than the Logistic Regression one.</li></ul><ul id="09399fa9-99e0-4401-859f-5a8e57ba9d6f" class="bulleted-list"><li style="list-style-type:disc">Hence, Random Forest is performing better in this case. </li></ul><ul id="a89f394d-876f-4d74-86a7-e35b9e1859d6" class="bulleted-list"><li style="list-style-type:disc">That’s how we use AUC.😉</li></ul><h1 id="2851513b-8a68-4ba9-b8f3-2f43e967e2d4" class="">References:</h1><ul id="29e9487a-11d8-4b11-acf2-717313a55412" class="bulleted-list"><li style="list-style-type:disc"><a href="https://towardsdatascience.com/guide-to-confusion-matrices-classification-performance-metrics-a0ebfc08408e">https://towardsdatascience.com/guide-to-confusion-matrices-classification-performance-metrics-a0ebfc08408e</a></li></ul><ul id="fc7d980d-7ba6-4f33-ac2f-8ebb52f1d52c" class="bulleted-list"><li style="list-style-type:disc"><a href="https://www.youtube.com/watch?v=jJ7ff7Gcq34&amp;ab_channel=DataScienceDojo">https://www.youtube.com/watch?v=jJ7ff7Gcq34&amp;ab_channel=DataScienceDojo</a></li></ul><ul id="b98a666c-8ae0-43a6-839b-6aee47c0d29e" class="bulleted-list"><li style="list-style-type:disc"><a href="https://www.youtube.com/watch?v=Kdsp6soqA7o&amp;ab_channel=StatQuestwithJoshStarmer">https://www.youtube.com/watch?v=Kdsp6soqA7o&amp;ab_channel=StatQuestwithJoshStarmer</a></li></ul><ul id="9ad85c62-20aa-4747-8867-2c3f0554f83e" class="bulleted-list"><li style="list-style-type:disc"><a href="https://www.youtube.com/watch?v=vP06aMoz4v8&amp;ab_channel=StatQuestwithJoshStarmer">https://www.youtube.com/watch?v=vP06aMoz4v8&amp;ab_channel=StatQuestwithJoshStarmer</a></li></ul></div></article></body></html>
